@@ -7,7 +7,7 @@
 
 import os
 from unittest import TestCase
-from models import db, User, Message, Follow, DEFAULT_IMAGE_URL, bcrypt
+from models import db, User, Message, DEFAULT_IMAGE_URL, bcrypt
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -156,47 +156,5 @@ class TestUserMethods(TestCase):
         self.assertTrue(auth_user)
         self.assertFalse(User.authenticate("hello", u1.password))
         self.assertFalse(User.authenticate(u1.username, "notpassword"))
-
-
-class MessageModelTestCase(TestCase):
-    def setUp(self):
-        Message.query.delete()
-
-        u1 = User.signup("u1", "u1@email.com", "password", None)
-
-        m1 = Message(
-            text="sometimes ham",
-            timestamp=None
-        )
-
-        u1.messages.append(m1)
-
-        db.session.commit()
-
-        self.u1_id = u1.id
-
-
-    def tearDown(self):
-        db.session.rollback()
-
-
-    def test_message_model(self):
-        """Tests Message model attributes"""
-
-        u1 = User.query.get(self.u1_id)
-
-        self.assertEqual(len(u1.messages), 1)
-
-        m2 = Message(
-            text="pineapple pizza",
-            timestamp=None
-        )
-
-        u1.messages.append(m2)
-
-        self.assertEqual(len(u1.messages), 2)
-
-        self.assertEqual(u1.messages[1].text, "pineapple pizza")
-
 
 
