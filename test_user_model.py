@@ -7,7 +7,6 @@
 
 import os
 from unittest import TestCase
-from flask import session
 from models import db, User, Message, Follow, DEFAULT_IMAGE_URL, bcrypt
 
 # BEFORE we import our app, let's set an environmental variable
@@ -44,6 +43,8 @@ class UserModelTestCase(TestCase):
         db.session.rollback()
 
     def test_user_model(self):
+        """Tests User model attributes"""
+
         u1 = User.query.get(self.u1_id)
         u1_hash_check = bcrypt.check_password_hash(u1.password, "password")
 
@@ -74,6 +75,8 @@ class TestUserMethods(TestCase):
         db.session.rollback()
 
     def test_is_following(self):
+        """Tests is_following method"""
+
         u1 = User.query.get(self.u1_id)
         u2 = User.query.get(self.u2_id)
 
@@ -93,6 +96,8 @@ class TestUserMethods(TestCase):
 
 
     def test_is_followed_by(self):
+        """Tests is_followed method"""
+
         u1 = User.query.get(self.u1_id)
         u2 = User.query.get(self.u2_id)
 
@@ -111,10 +116,22 @@ class TestUserMethods(TestCase):
         self.assertIn(u1, u2.followers)
 
 
-    def test_user_signup(self):
+    def test_has_liked(self):
+        """Tests has_liked method"""
+        u1 = User.query.get(self.u1_id)
 
-        # call signup passing in username, email, password, image_url=DEFAULT_IMAGE_URL
-        # test that user is in session and that user has same values
+        m1 = Message(
+            text="sometimes ham",
+            timestamp=None
+        )
+
+        u1.liked_messages.append(m1)
+
+        self.assertEqual(len(u1.liked_messages), 1)
+
+
+    def test_user_signup(self):
+        """Tests user_signup method"""
 
         u1 = User.query.get(self.u1_id)
 
@@ -139,3 +156,47 @@ class TestUserMethods(TestCase):
         self.assertTrue(auth_user)
         self.assertFalse(User.authenticate("hello", u1.password))
         self.assertFalse(User.authenticate(u1.username, "notpassword"))
+
+
+class MessageModelTestCase(TestCase):
+    def setUp(self):
+        Message.query.delete()
+
+        u1 = User.signup("u1", "u1@email.com", "password", None)
+
+        m1 = Message(
+            text="sometimes ham",
+            timestamp=None
+        )
+
+        u1.messages.append(m1)
+
+        db.session.commit()
+
+        self.u1_id = u1.id
+
+
+    def tearDown(self):
+        db.session.rollback()
+
+
+    def test_message_model(self):
+        """Tests Message model attributes"""
+
+        u1 = User.query.get(self.u1_id)
+
+        self.assertEqual(len(u1.messages), 1)
+
+        m2 = Message(
+            text="pineapple pizza",
+            timestamp=None
+        )
+
+        u1.messages.append(m2)
+
+        self.assertEqual(len(u1.messages), 2)
+
+        self.assertEqual(u1.messages[1].text, "pineapple pizza")
+
+
+
