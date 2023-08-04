@@ -79,7 +79,6 @@ def signup():
     form = UserAddForm()
 
     if form.validate_on_submit():
-        breakpoint()
         try:
             user = User.signup(
                 username=form.username.data,
